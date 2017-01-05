@@ -10,6 +10,7 @@ import se.plushogskolan.restcaseservice.resource.IssueResource;
 import se.plushogskolan.restcaseservice.resource.TeamResource;
 import se.plushogskolan.restcaseservice.resource.UserResource;
 import se.plushogskolan.restcaseservice.resource.WorkItemResource;
+import se.plushogskolan.restcaseservice.security.AuthorizationRequestFilter;
 
 @Component
 public class JerseyConfig extends ResourceConfig {
@@ -22,6 +23,7 @@ public class JerseyConfig extends ResourceConfig {
 		register(ConflictExceptionMapper.class);
 		register(NotFoundExceptionMapper.class);
 		register(BadRequestExceptionMapper.class);
+		register(AuthorizationRequestFilter.class);
 	}
 
 }
