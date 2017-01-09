@@ -1,5 +1,7 @@
 package se.plushogskolan.restcaseservice.resource;
 
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URI;
@@ -15,39 +17,31 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-
 import se.plushogskolan.restcaseservice.Application;
 import se.plushogskolan.restcaseservice.config.InmemoryDBConfig;
-import se.plushogskolan.restcaseservice.model.DTOTeam;
-import se.plushogskolan.restcaseservice.service.TeamService;
+import se.plushogskolan.restcaseservice.model.DTOWorkItem;
+import se.plushogskolan.casemanagement.model.WorkItem.Status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(classes = { InmemoryDBConfig.class, TeamService.class })
-public class TestTeamResource {
-
-	@Autowired
-	private TeamService service;
+@ContextConfiguration(classes = { InmemoryDBConfig.class})
+public class TestWorkItemResource {
 
 	@LocalServerPort
 	private int randomPort;
 	private static final String auth = "Authorization";
 	private static final String authCode = "Adminrights";
 	private static Client client;
-	private WebTarget teamWebTarget;
-	private URI teamInDb;
+	private WebTarget wiWebTarget;
+	private URI wiInDb;
 	private String baseURL;
 
-	private DTOTeam testTeam;
+	private DTOWorkItem testwi;
 
 	@BeforeClass
 	public static void initialize() {
@@ -57,31 +51,24 @@ public class TestTeamResource {
 	@Before
 	public void setup() {
 		String targetUrl = String.format("http://localhost:%d/", randomPort);
-		baseURL = String.format("http://localhost:%d/teams", randomPort);
-		String resource = "teams";
-		teamWebTarget = client.target(targetUrl).path(resource);
-		testTeam = new DTOTeam(1001L, "testteam", true);
-		teamInDb = teamWebTarget.request().header(auth, authCode)
-				.post(Entity.entity(testTeam, MediaType.APPLICATION_JSON)).getLocation();
+		baseURL = String.format("http://localhost:%d/workitems", randomPort);
+		String resource = "workitems";
+		wiWebTarget = client.target(targetUrl).path(resource);
+		testwi = new DTOWorkItem(1001L, "testwi", Status.DONE);
+		wiInDb = wiWebTarget.request().header(auth, authCode)
+				.post(Entity.entity(testwi, MediaType.APPLICATION_JSON)).getLocation();
 	}
-
+	
 	@Test
-	public void createTeamTest() {
-		Response response = teamWebTarget.request().header(auth, authCode)
-				.post(Entity.entity(new DTOTeam(1L, "Team1", true), MediaType.APPLICATION_JSON));
+	public void createWorkItemTest() {
+		Response response = wiWebTarget.request().header(auth, authCode)
+				.post(Entity.entity(new DTOWorkItem(1L, "WorkItem1", Status.DONE), MediaType.APPLICATION_JSON));
 		assertEquals(CREATED, response.getStatusInfo());
 	}
-
-	@Test
-	public void updateTeamTest() {
-		Response response = client.target(teamInDb).request().header(auth, authCode)
-				.put(Entity.entity(new DTOTeam(service.getTeam(1L).getId(), "updatedTeam", false), MediaType.APPLICATION_JSON));
-		assertEquals(NO_CONTENT, response.getStatusInfo());
-	}
-
+	
 	@Test
 	public void getTeamById() {
-		Response response = client.target(teamInDb).request().header(auth, authCode).get();
+		Response response = client.target(wiInDb).request().header(auth, authCode).get();
 		assertEquals(OK, response.getStatusInfo());
 	}
 	
